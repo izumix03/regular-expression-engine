@@ -14,7 +14,7 @@ pub enum AST {
     Star(Box<AST>), // *
     Question(Box<AST>), // ?
     Or(Box<AST>, Box<AST>), // |
-    Seq(Vex<AST>), // 正規表現の列
+    Seq(Vec<AST>), // 正規表現の列
     // abc の AST = AST::Seq(vec![AST::Char('a'), AST::Char('b'), AST::Char('c')])
 }
 
@@ -109,16 +109,16 @@ pub fn parse(expr: &str) -> Result<AST, ParseError> {
         Escape,
     }
 
-    let mut seq = Vec::New(); // 現在の seq コンテキスト
-    let mut seq_or = Vec::new(); // 現在の Or コンテキスト
-    let mut stack = Vec::new(); // コンテキストのスタック
+    let mut seq = Vec::new(); // 現在の seq コンテキスト e.g. "abc"
+    let mut seq_or = Vec::new(); // 現在の Or コンテキスト(本体) e.g. "abc|de"
+    let mut stack = Vec::new(); // コンテキストのスタック(一次保存)
     let mut state = ParseState::Char;  // 現在の状態
 
     for (i, c) in expr.chars().enumerate() {
         match &state {
             ParseState::Char => {
                 match c {
-                    '+' => parse_plus_star_question(&mut seq, PSQ::Plus, i)?,  // seq につめる
+                    '+' => parse_plus_star_question(&mut seq, PSQ::Plus, i)?,  // seq につめる, pos はエラー用 e.g AST::Plus(Box::new(seq)),
                     '*' => parse_plus_star_question(&mut seq, PSQ::Star, i)?,
                     '?' => parse_plus_star_question(&mut seq, PSQ::Question, i)?,
                     '(' => {
@@ -131,19 +131,19 @@ pub fn parse(expr: &str) -> Result<AST, ParseError> {
                     ')' => {
                         // 現在のコンテキストをスタックからポップ
                         if let Some((mut prev, prev_or)) = stack.pop() {
-                            // "()" のように、式が殻の場合は push しない
+                            // "()" のように、式が殻の場合は push しない "(abc|de|)"とかもかな..なんでエラーちゃうんやろ？再利用用？
                             if !seq.is_empty() {
                                 seq_or.push(AST::Seq(seq))
                             }
 
-                            // Or を生成
+                            // Or を生成 e.g. AST::Or("abc", AST::Or("def", "ghi"))
                             if let Some(ast) = fold_or(seq_or) {
                                 prev.push(ast);
                             }
 
                             // 以前のコンテキストを 現在のコンテキストにする
                             seq = prev;
-                            seq_or = prev_or;
+                            seq_or = prev_or; // ??これが残っていることある？ abc|(ed)とかはそうなりそう
                         } else {
                             // "abc)" のように開きカッコがない場合はエラー
                             return Err(ParseError::InvalidRightParen(i)); // MEMO: Boxはいりません
@@ -173,12 +173,15 @@ pub fn parse(expr: &str) -> Result<AST, ParseError> {
         }
     }
 
+    // 最終処理
+
     // 閉じカッコが足りない場合はエラー
     if !stack.is_empty() {
         return Err(ParseError::NoRightParen);
     }
 
     // "()" のように、式が空の場合は push しない
+    // 最後の文字列はここでpushされる
     if !seq.is_empty() {
         seq_or.push(AST::Seq(seq));
     }
