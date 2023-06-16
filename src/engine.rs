@@ -1,13 +1,14 @@
 use std::fmt::{Display, Formatter};
 
 mod parser;
+mod codegen;
 
 #[derive(Debug)]
 pub enum Instruction {
     Char(char),
     Match,
     Jump(usize),
-    Split(usize, usize),
+    Split(usize, usize), // L1のアドレス、L2のアドレス
 }
 
 impl Display for Instruction {
