@@ -4,6 +4,12 @@ use crate::engine::Instruction;
 use crate::engine::parser::AST;
 use crate::helpers::safe_add;
 
+pub fn gen_code(ast: &AST) -> Result<Vec<Instruction>, CodeGenError> {
+    let mut generator = Generator::default();
+    generator.gen_code(ast)?;
+    Ok(generator.insts)
+}
+
 // コード生成エラーを表す
 #[derive(Debug)]
 pub enum CodeGenError {
@@ -100,4 +106,95 @@ impl Generator {
 
         Ok(())
     }
+
+    /// ?限量子のコード生成器。
+    ///
+    /// 以下のようなコードを生成
+    ///
+    /// ```text
+    ///     split L1, L2
+    /// L1: eのコード
+    /// L2:
+    /// ```
+    fn gen_question(&mut self, e: &AST) -> Result<(), CodeGenError> {
+        // split L1, L2
+        let split_addr = self.pc;
+        self.inc_pc()?;
+        let split = Instruction::Split(self.pc, 0); // self.pcがL1。L2を仮に0と設定
+        self.insts.push(split);
+
+        // L1: eのコード
+        self.gen_expr(e)?;
+
+        // L2の値を設定
+        if let Some(Instruction::Split(_, l2)) = self.insts.get_mut(split_addr) {
+            *l2 = self.pc;
+            Ok(())
+        } else {
+            Err(CodeGenError::FailQuestion)
+        }
+    }
+
+    /// 以下のようなコードを生成
+    ///
+    /// ```text
+    /// L1: eのコード
+    ///     split L1, L2
+    /// L2:
+    /// ```
+    fn gen_plus(&mut self, e: &AST) -> Result<(), CodeGenError> {
+        // L1: eのコード
+        let l1 = self.pc;
+        self.gen_expr(e)?;
+
+        // split L1, L2
+        self.inc_pc()?;
+        let split = Instruction::Split(l1, self.pc); // self.pcがL2
+        self.insts.push(split);
+
+        Ok(())
+    }
+
+    /// *限量子のコード生成器。
+    ///
+    /// 以下のようなコードを生成
+    ///
+    /// ```text
+    /// L1: split L2, L3
+    /// L2: eのコード
+    ///     jump L1
+    /// L3:
+    /// ```
+    fn gen_star(&mut self, e: &AST) -> Result<(), CodeGenError> {
+        // L1: split L2, L3
+        let l1 = self.pc;
+        self.inc_pc()?;
+        let split = Instruction::Split(self.pc, 0); // self.pcがL2。L3を仮に0と設定
+        self.insts.push(split);
+
+        // L2: eのコード
+        self.gen_expr(e)?;
+
+        // jump L1
+        self.inc_pc()?;
+        self.insts.push(Instruction::Jump(l1));
+
+        // L3の値を設定
+        if let Some(Instruction::Split(_, l3)) = self.insts.get_mut(l1) {
+            *l3 = self.pc;
+            Ok(())
+        } else {
+            Err(CodeGenError::FailStar)
+        }
+    }
+
+    // コード生成を行う関数の入り口
+    fn gen_code(&mut self, ast: &AST) -> Result<(), CodeGenError> {
+        self.gen_expr(ast)?;
+        // 最後に Match を作成する
+        self.inc_pc()?;
+        self.insts.push(Instruction::Match);
+        Ok(())
+    }
 }
+

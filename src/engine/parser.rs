@@ -9,21 +9,30 @@ use std::fmt::{Formatter, write};
 
 #[derive(Debug)]
 pub enum AST {
-    Char(char), // 1文字パターン
-    Plus(Box<AST>), // +
-    Star(Box<AST>), // *
-    Question(Box<AST>), // ?
-    Or(Box<AST>, Box<AST>), // |
+    Char(char),
+    // 1文字パターン
+    Plus(Box<AST>),
+    // +
+    Star(Box<AST>),
+    // *
+    Question(Box<AST>),
+    // ?
+    Or(Box<AST>, Box<AST>),
+    // |
     Seq(Vec<AST>), // 正規表現の列
     // abc の AST = AST::Seq(vec![AST::Char('a'), AST::Char('b'), AST::Char('c')])
 }
 
 #[derive(Debug)]
 pub enum ParseError {
-    InvalidEscape(usize, char), // 不正なエスケープシーケンス
-    InvalidRightParen(usize),   // 開きカッコなし
-    NoPrev(usize),              // +, |, *, ? の前に式がない
-    NoRightParen,               // 閉じカッコなし
+    InvalidEscape(usize, char),
+    // 不正なエスケープシーケンス
+    InvalidRightParen(usize),
+    // 開きカッコなし
+    NoPrev(usize),
+    // +, |, *, ? の前に式がない
+    NoRightParen,
+    // 閉じカッコなし
     Empty,                      // 空
 }
 
@@ -31,13 +40,13 @@ impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             ParseError::InvalidEscape(pos, c) => {
-                write!(f, "ParseError: invalid escape: pos = {pos}, char = '{c}'")
+                write!(f, "ParseError: invalid escape: pos = {}, char = '{}'", pos, c)
             }
             ParseError::InvalidRightParen(pos) => {
                 write!(f, "ParseError: invalid right parenthesis: pos = {pos}")
             }
             ParseError::NoPrev(pos) => {
-                write!(f, "ParseError: no previous expression: pos = {pos}")
+                write!(f, "ParseError: no previous expression: pos = {}", pos)
             }
             ParseError::NoRightParen => {
                 write!(f, "ParseError: no right parenthesis")
@@ -92,7 +101,7 @@ fn fold_or(mut seq_or: Vec<AST>) -> Option<AST> {
         let mut ast = seq_or.pop().unwrap();
         seq_or.reverse();
         for s in seq_or {
-            ast  = AST::Or(Box::new(s), Box::new(ast))
+            ast = AST::Or(Box::new(s), Box::new(ast))
         }
         Some(ast)
     } else {
