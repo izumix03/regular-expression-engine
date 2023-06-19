@@ -4,7 +4,7 @@ use crate::engine::Instruction;
 use crate::engine::parser::AST;
 use crate::helpers::safe_add;
 
-pub fn gen_code(ast: &AST) -> Result<Vec<Instruction>, CodeGenError> {
+pub fn get_code(ast: &AST) -> Result<Vec<Instruction>, CodeGenError> {
     let mut generator = Generator::default();
     generator.gen_code(ast)?;
     Ok(generator.insts)

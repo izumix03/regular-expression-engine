@@ -43,11 +43,11 @@ fn eval_depth(
 
         match next {
             Instruction::Char(c) => {
-                if let some(sp_c) = line.get(sp) {
-                    if c == ap_c {
+                if let Some(sp_c) = line.get(sp) {
+                    if c == sp_c {
                         // 一致した場合、次の評価
-                        safe_add(&mut pc, &1, || Box::new(EvalError::PCOverFlow))?;
-                        safe_add(&mut sp, &1, || Box::new(EvalError::SPOverFlow))?;
+                        safe_add(&mut pc, &1, || EvalError::PCOverFlow)?;
+                        safe_add(&mut sp, &1, || EvalError::SPOverFlow)?;
                     } else {
                         // 一致しない場合は false で終わり
                         return Ok(false)
@@ -61,8 +61,7 @@ fn eval_depth(
                 pc = *addr
             }
             Instruction::Split(addr1, addr2) => {
-                return if eval_depth(isnt, line, *addr1, sp)? ||
-                    eval_depth(inst, line, *addr2, sp)? {
+                return if eval_depth(inst, line, *addr1, sp)? || eval_depth(inst, line, *addr2, sp)? {
                     Ok(true)
                 } else {
                     Ok(false)
