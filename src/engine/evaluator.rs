@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
-use crate::engine::Instruction;
+use crate::engine::{Instruction};
 use crate::helpers::safe_add;
 
 #[derive(Debug)]
@@ -8,7 +8,7 @@ pub enum EvalError {
     PCOverFlow,
     SPOverFlow,
     InvalidPC, // 評価器の実装に誤りがある場合に発生するエラー
-    InvalidContext, // 評価器の実装に誤りがある場合に発生するエラー
+    // InvalidContext, // 評価器の実装に誤りがある場合に発生するエラー
 }
 
 impl Display for EvalError {
@@ -49,9 +49,12 @@ fn eval_depth(
                         safe_add(&mut pc, &1, || EvalError::PCOverFlow)?;
                         safe_add(&mut sp, &1, || EvalError::SPOverFlow)?;
                     } else {
-                        // 一致しない場合は false で終わり
+                        // 一致しない場合は false
                         return Ok(false)
                     }
+                } else {
+                    // 最後まで来てしまったので false
+                    return Ok(false);
                 }
             }
             Instruction::Match => {

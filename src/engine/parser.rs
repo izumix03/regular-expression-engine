@@ -5,7 +5,7 @@ use std::{
     fmt::{self, Display}, // println! マクロなどで表示するためのトレイト
     mem::take, // ある変数から所有権の取得し、その変数の初期化を同時に行う関数
 };
-use std::fmt::{Formatter, write};
+use std::fmt::Formatter;
 
 #[derive(Debug)]
 pub enum AST {
