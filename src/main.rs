@@ -6,7 +6,7 @@ use crate::helpers::DynError;
 mod engine;
 mod helpers;
 
-// cargo run abc* regex.tex
+// cargo run "abc*" regex.tex
 fn main() -> Result<(), DynError> {
     let args: Vec<String> = env::args().collect();
     if args.len() <= 2 {

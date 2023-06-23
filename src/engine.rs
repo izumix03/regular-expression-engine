@@ -10,6 +10,7 @@ pub enum Instruction {
     Char(char),
     Match,
     Jump(usize),
+    Dot,
     Split(usize, usize), // L1のアドレス、L2のアドレス
 }
 
@@ -20,6 +21,7 @@ impl Display for Instruction {
             Instruction::Match => write!(f, "match"),
             Instruction::Jump(addr) => write!(f, "jump {:>04}", addr),
             Instruction::Split(addr1, addr2) => write!(f, "split {:>04}, {:>04}", addr1, addr2),
+            Instruction::Dot => write!(f, "dot"),
         }
     }
 }

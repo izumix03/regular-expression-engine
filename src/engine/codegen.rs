@@ -46,6 +46,7 @@ impl Generator {
     fn gen_expr(&mut self, ast: &AST) -> Result<(), CodeGenError> {
         match ast {
             AST::Char(c) => self.gen_char(*c)?,
+            AST::Dot => self.gen_dot()?,
             AST::Or(e1, e2) => self.gen_or(e1, e2)?,
             AST::Plus(e) => self.gen_plus(e)?,
             AST::Star(e) => self.gen_star(e)?,
@@ -65,6 +66,13 @@ impl Generator {
 
     fn gen_char(&mut self, c: char) -> Result<(), CodeGenError> {
         let inst = Instruction::Char(c);
+        self.insts.push(inst);
+        self.inc_pc()?;
+        Ok(())
+    }
+
+    fn gen_dot(&mut self)  -> Result<(), CodeGenError> {
+        let inst = Instruction::Dot;
         self.insts.push(inst);
         self.inc_pc()?;
         Ok(())
