@@ -6,3 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+[dev-dependencies]
+criterion = "0.5.1"
+
+# benches ディレクトリを作成
+# benchesディレクトリは独立したcrateとしてコンパイルされるため，srcディレクトリを読み込むことができないためです．
+# その解決策として，測定したい関数をコンパイル時にバイナリだけではなくライブラリとして出力する方法がプラクティスとして好まれるようです．
+[[bench]]
+name = "benchmark"
+harness = false
