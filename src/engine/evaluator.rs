@@ -44,7 +44,7 @@ fn eval_depth(
         match next {
             Instruction::Char(c) => {
                 if let Some(sp_c) = line.get(sp) {
-                    if c == sp_c {
+                    if c == sp_c || *c == '.' {
                         // 一致した場合、次の評価
                         safe_add(&mut pc, &1, || EvalError::PCOverFlow)?;
                         safe_add(&mut sp, &1, || EvalError::SPOverFlow)?;
