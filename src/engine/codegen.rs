@@ -52,6 +52,8 @@ impl Generator {
             AST::Star(e) => self.gen_star(e)?,
             AST::Question(e) => self.gen_question(e)?,
             AST::Seq(v) => self.gen_seq(v)?,
+            AST::Caret => self.gen_caret()?,
+            AST::Dollar => self.gen_dollar()?,
         }
 
         Ok(())
@@ -73,6 +75,20 @@ impl Generator {
 
     fn gen_dot(&mut self)  -> Result<(), CodeGenError> {
         let inst = Instruction::Dot;
+        self.insts.push(inst);
+        self.inc_pc()?;
+        Ok(())
+    }
+
+    fn gen_caret(&mut self) -> Result<(), CodeGenError> {
+        let inst = Instruction::Caret;
+        self.insts.push(inst);
+        self.inc_pc()?;
+        Ok(())
+    }
+
+    fn gen_dollar(&mut self) -> Result<(), CodeGenError> {
+        let inst = Instruction::Dollar;
         self.insts.push(inst);
         self.inc_pc()?;
         Ok(())

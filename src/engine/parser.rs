@@ -22,6 +22,8 @@ pub enum AST {
     Seq(Vec<AST>), // 正規表現の列
     // abc の AST = AST::Seq(vec![AST::Char('a'), AST::Char('b'), AST::Char('c')])
     Dot,
+    Caret,
+    Dollar,
 }
 
 #[derive(Debug)]
@@ -63,7 +65,7 @@ impl Error for ParseError {}
 // c: エスケープする特殊文字
 fn parse_escape(pos: usize, c: char) -> Result<AST, ParseError> {
     match c {
-        '.' | '\\' | '(' | ')' | '|' | '+' | '*' | '?' => Ok(AST::Char(c)),
+        '^' | '$' | '.' | '\\' | '(' | ')' | '|' | '+' | '*' | '?' => Ok(AST::Char(c)),
         _ => {
             let err = ParseError::InvalidEscape(pos, c);
             Err(err)
@@ -172,6 +174,8 @@ pub fn parse(expr: &str) -> Result<AST, ParseError> {
                     }
                     '\\' => state = ParseState::Escape,
                     '.' => seq.push(AST::Dot),
+                    '^' => seq.push(AST::Caret),
+                    '$' => seq.push(AST::Dollar),
                     _ => seq.push(AST::Char(c)),
                 }
             }

@@ -12,6 +12,8 @@ pub enum Instruction {
     Jump(usize),
     Dot,
     Split(usize, usize), // L1のアドレス、L2のアドレス
+    Caret,
+    Dollar,
 }
 
 impl Display for Instruction {
@@ -22,6 +24,8 @@ impl Display for Instruction {
             Instruction::Jump(addr) => write!(f, "jump {:>04}", addr),
             Instruction::Split(addr1, addr2) => write!(f, "split {:>04}, {:>04}", addr1, addr2),
             Instruction::Dot => write!(f, "dot"),
+            Instruction::Caret => write!(f, "caret"),
+            Instruction::Dollar => write!(f, "dollar"),
         }
     }
 }
@@ -42,11 +46,11 @@ impl Display for Instruction {
 /// エラーなく実行してマッチング成功したら true
 /// エラーなく実行してマッチング失敗したら false
 /// エラーがある場合は Err
-pub fn do_matching(expr: &str, line: &str, is_depth: bool) -> Result<bool,DynError>{
+pub fn do_matching(expr: &str, line: &str, index: usize, is_depth: bool) -> Result<bool,DynError>{
     let ast = parser::parse(expr)?; // AST変換
     let code = codegen::get_code(&ast)?; // 命令に変換
     let line = line.chars().collect::<Vec<char>>();
-    Ok(evaluator::eval(&code, &&line, is_depth)?) // 正規表現評価
+    Ok(evaluator::eval(&code, &&line, index, is_depth)?) // 正規表現評価
 }
 
 /// 正規表現をパースしてコード生成し、

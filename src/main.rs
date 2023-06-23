@@ -29,7 +29,7 @@ fn match_file(expr: &str, file: &str)-> Result<(), DynError> {
     for line in reader.lines() {
         let line = line?;
         for (i, _) in line.char_indices() {
-            if engine::do_matching(expr, &line[i..], true)? {
+            if engine::do_matching(expr, &line[i..], i, true)? {
                 println!("hit!!!: {line}");
                 break;
             }
@@ -66,20 +66,20 @@ mod tests {
     #[test]
     fn test_matching() {
         // パースエラー
-        assert!(do_matching("+b", "bbb", true).is_err());
-        assert!(do_matching("*b", "bbb", true).is_err());
-        assert!(do_matching("|b", "bbb", true).is_err());
-        assert!(do_matching("?b", "bbb", true).is_err());
+        assert!(do_matching("+b", "bbb", 0, true).is_err());
+        assert!(do_matching("*b", "bbb", 0, true).is_err());
+        assert!(do_matching("|b", "bbb", 0, true).is_err());
+        assert!(do_matching("?b", "bbb", 0, true).is_err());
 
         // マッチ成功
-        assert!(do_matching("abc|def", "def", true).unwrap());
-        assert!(do_matching("(abc)*", "abcabc", true).unwrap());
-        assert!(do_matching("(ab|cd)+", "abcdcd", true).unwrap());
-        assert!(do_matching("abc?", "ab", true).unwrap());
+        assert!(do_matching("abc|def", "def", 0, true).unwrap());
+        assert!(do_matching("(abc)*", "abcabc", 0, true).unwrap());
+        assert!(do_matching("(ab|cd)+", "abcdcd", 0, true).unwrap());
+        assert!(do_matching("abc?", "ab", 0, true).unwrap());
 
         // マッチしない
-        assert!(!do_matching("abc|def", "efa", true).unwrap());
-        assert!(!do_matching("(ab|cd)+", "", true).unwrap());
-        assert!(!do_matching("abc?", "acb", true).unwrap());
+        assert!(!do_matching("abc|def", "efa", 0, true).unwrap());
+        assert!(!do_matching("(ab|cd)+", "", 0, true).unwrap());
+        assert!(!do_matching("abc?", "acb", 0, true).unwrap());
     }
 }
